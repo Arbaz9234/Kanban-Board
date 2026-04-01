@@ -1,0 +1,62 @@
+export const COLUMNS = [
+  { id: "todo", label: "To Do", icon: "list" },
+  { id: "inprogress", label: "In Progress", icon: "clock" },
+  { id: "done", label: "Done", icon: "check" },
+];
+
+export const INITIAL_TASKS = [
+  {
+    id: "task-1",
+    title: "Design System implementation for the new mobile dashboard",
+    column: "todo",
+    priority: "High",
+    date: "Oct 24",
+    comments: 12,
+    avatar: "DS",
+  },
+  {
+    id: "task-2",
+    title: "Review user feedback from Beta testing Phase 1",
+    column: "todo",
+    priority: "Medium",
+    date: "Oct 26",
+    comments: 5,
+    avatar: "RU",
+  },
+  {
+    id: "task-3",
+    title: "Update API documentation for v2.4 release",
+    column: "todo",
+    priority: "Low",
+    date: "Nov 02",
+    comments: 2,
+    avatar: "UA",
+  },
+  {
+    id: "task-4",
+    title: "Refactor core authentication logic for security compliance",
+    column: "inprogress",
+    priority: "High",
+    date: "Oct 22",
+    comments: 24,
+    avatar: "RC",
+  },
+  {
+    id: "task-5",
+    title: "Implement Dark Mode support across all components",
+    column: "inprogress",
+    priority: "Medium",
+    date: "Oct 28",
+    comments: 8,
+    avatar: "ID",
+  },
+  {
+    id: "task-6",
+    title: "Finalize quarterly performance reports",
+    column: "done",
+    priority: "Low",
+    date: "Oct 15",
+    comments: 0,
+    avatar: "FQ",
+  },
+];
