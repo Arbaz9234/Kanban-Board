@@ -1,8 +1,14 @@
+import { useState } from "react";
 import { Toaster } from "sonner";
 import KanbanBoard from "./components/KanbanBoard";
 import { assets } from "./assets/assets";
 
 export default function App() {
+  const [showAddColumn, setShowAddColumn] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="app">
       {/* Navbar */}
@@ -15,11 +21,12 @@ export default function App() {
               </div>
               <span className="logo-text">Kanban Board</span>
             </div>
-            <div className="nav-links">
+            <div className={`nav-links ${menuOpen ? "open" : ""}`}>
               {["Board", "Analytics", "Team", "Settings"].map((item) => (
                 <button
                   key={item}
                   className={`nav-link ${item === "Board" ? "active" : ""}`}
+                  onClick={() => setMenuOpen(false)}
                 >
                   {item}
                 </button>
@@ -29,30 +36,59 @@ export default function App() {
           <div className="nav-right">
             <div className="search-box">
               <assets.SearchIcon />
-              <span>Search tasks...</span>
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+              {searchQuery && (
+                <button
+                  className="search-clear"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <assets.CloseIcon />
+                </button>
+              )}
             </div>
-            <div className="user-avatar">JD</div>
+            <div className="user-avatar">AT</div>
+            <button
+              className="hamburger"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              aria-label="Toggle menu"
+            >
+              <span className={`hamburger-line ${menuOpen ? "open" : ""}`} />
+              <span className={`hamburger-line ${menuOpen ? "open" : ""}`} />
+              <span className={`hamburger-line ${menuOpen ? "open" : ""}`} />
+            </button>
           </div>
         </div>
       </nav>
 
       {/* Main content */}
-      <main className="main">
+      <div className="main">
         {/* Page header */}
         <div className="page-header">
-          <div>
+          <div className="breadcrumb-wrapper">
             <p className="breadcrumb">
               PROJECTS /{" "}
-              <span className="breadcrumb-active">ZENITH CORE PLATFORM</span>
+              <span className="breadcrumb-active">FLOW AUTOMATE</span>
             </p>
-            <h1 className="page-title">Project Sprint Kanban</h1>
+            <h1 className="page-title">Project Sprint</h1>
           </div>
           <div className="header-actions">
-            <button className="btn-secondary">
+            <button
+              className="btn-secondary"
+              onClick={() => setShowHistory(true)}
+            >
               <assets.ClockIcon />
               History
             </button>
-            <button className="btn-primary">
+            <button
+              className="btn-primary"
+              onClick={() => setShowAddColumn(true)}
+            >
               <assets.AddIcon />
               New Column
             </button>
@@ -60,8 +96,14 @@ export default function App() {
         </div>
 
         {/* Board */}
-        <KanbanBoard />
-      </main>
+        <KanbanBoard
+          searchQuery={searchQuery}
+          showAddColumn={showAddColumn}
+          onCloseAddColumn={() => setShowAddColumn(false)}
+          showHistory={showHistory}
+          onCloseHistory={() => setShowHistory(false)}
+        />
+      </div>
 
       {/* Footer */}
       <footer className="footer">
@@ -83,7 +125,7 @@ export default function App() {
         toastOptions={{
           style: {
             background: "#1e1e2e",
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid #ffffff14",
             color: "#fff",
           },
         }}

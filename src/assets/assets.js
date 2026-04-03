@@ -7,6 +7,7 @@ import CommentIcon from "./comment-icon.svg?react";
 import ListIcon from "./list-icon.svg?react";
 import CheckIcon from "./check-icon.svg?react";
 import CloseIcon from "./close-icon.svg?react";
+import DeleteIcon from "./delete-icon.svg?react";
 export const assets = {
   Logo,
   SearchIcon,
@@ -17,4 +18,5 @@ export const assets = {
   ListIcon,
   CheckIcon,
   CloseIcon,
+  DeleteIcon,
 };

@@ -1,16 +1,61 @@
-# React + Vite
+# Kanban Board
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, fully interactive Kanban board built with React 19 featuring drag-and-drop task management, optimistic UI updates with rollback, and a responsive design.
 
-Currently, two official plugins are available:
+![Kanban Board](src/assets/hero.jpg)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Drag & Drop** -- Move tasks between columns with smooth drag-and-drop powered by `@dnd-kit`. Supports both cross-column moves and within-column reordering.
+- **Optimistic Updates with Rollback on failure**
+- **Dynamic Columns** -- Add new columns or delete existing ones.
+- **Live Search** -- Real-time task filtering.
+- **Task History** -- Scrollable modal showing all tasks with their title, date, and current column.
+- **Responsive Design**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+| Tool                 | Purpose                         |
+| -------------------- | ------------------------------- |
+| React 19             | UI framework                    |
+| Vite 8               | Build tool & dev server         |
+| @dnd-kit/core 6      | Drag-and-drop engine            |
+| @dnd-kit/sortable 10 | Sortable list primitives        |
+| Sonner               | Toast notifications             |
+| vite-plugin-svgr     | SVG imports as React components |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+```bash
+git clone https://github.com/arbaz9234/Kanban-Board.git
+cd Kanban-Board
+npm install
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+### Build
+
+```bash
+npm run build
+npm run preview
+```
+
+## How the Optimistic Update Works
+
+1. User drags a task to a new column
+2. UI updates **instantly** (optimistic)
+3. A mock API call is made (1.5s delay)
+4. **On success** -- toast confirms the move
+5. **On failure (20% chance)** -- task snaps back to its original column with a rollback animation and error toast

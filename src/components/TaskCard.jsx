@@ -7,7 +7,7 @@ const PRIORITY_STYLES = {
   Low: "priority-low",
 };
 
-export default function TaskCard({ task, isRollingBack }) {
+export default function TaskCard({ task, isRollingBack, searchQuery }) {
   const {
     attributes,
     listeners,
@@ -24,6 +24,10 @@ export default function TaskCard({ task, isRollingBack }) {
       : transition,
   };
 
+  const isMatch =
+    !searchQuery ||
+    task.title.toLowerCase().includes(searchQuery.toLowerCase());
+
   return (
     <div
       ref={setNodeRef}
@@ -34,6 +38,8 @@ export default function TaskCard({ task, isRollingBack }) {
         "task-card",
         isDragging ? "dragging" : "",
         isRollingBack ? "rolling-back" : "",
+        searchQuery && !isMatch ? "dimmed" : "",
+        searchQuery && isMatch ? "search-highlight" : "",
       ].join(" ")}
     >
       {isRollingBack && <div className="rollback-overlay" />}
@@ -42,7 +48,7 @@ export default function TaskCard({ task, isRollingBack }) {
         <span className={`priority-badge ${PRIORITY_STYLES[task.priority]}`}>
           {task.priority}
         </span>
-        <button className="card-menu">···</button>
+        {/* <button className="card-menu">···</button> */}
       </div>
 
       <p className="card-title">{task.title}</p>

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { COLUMNS } from "../lib/data";
 import { assets } from "../assets/assets";
-export default function AddTaskModal({ defaultColumn, onAdd, onClose }) {
+export default function AddTaskModal({ columns, defaultColumn, fixedColumn, onAdd, onClose }) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("Medium");
   const [column, setColumn] = useState(defaultColumn || "todo");
@@ -60,8 +59,10 @@ export default function AddTaskModal({ defaultColumn, onAdd, onClose }) {
               <select
                 value={column}
                 onChange={(e) => setColumn(e.target.value)}
+                disabled={fixedColumn}
+                style={fixedColumn ? { opacity: 0.5, cursor: "not-allowed" } : {}}
               >
-                {COLUMNS.map((c) => (
+                {columns.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.label}
                   </option>

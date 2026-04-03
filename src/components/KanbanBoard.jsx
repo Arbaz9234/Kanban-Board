@@ -13,26 +13,37 @@ import { toast } from "sonner";
 import Column from "./Column";
 import TaskCard from "./TaskCard";
 import AddTaskModal from "./AddTaskModal";
+import AddColumnModal from "./AddColumnModal";
+import ConfirmModal from "./ConfirmModal";
+import HistoryModal from "./HistoryModal";
 import { COLUMNS, INITIAL_TASKS } from "../lib/data";
 import { updateTaskStatus } from "../lib/mockApi";
 import { assets } from "../assets/assets";
 const measuring = {
   droppable: {
-    strategy: MeasuringStrategy.Always,
+    strategy: MeasuringStrategy.BeforeDragging,
   },
 };
 
-export default function KanbanBoard() {
+export default function KanbanBoard({ searchQuery, showAddColumn, onCloseAddColumn, showHistory, onCloseHistory }) {
+  const [columns, setColumns] = useState(COLUMNS);
   const [tasks, setTasks] = useState(INITIAL_TASKS);
   const [activeTask, setActiveTask] = useState(null);
   const [rollingBackIds, setRollingBackIds] = useState(new Set());
   const [modalColumn, setModalColumn] = useState(null);
+  const [deleteColumnId, setDeleteColumnId] = useState(null);
 
   // Ref so handleDragEnd always reads latest tasks without being in deps
   const tasksRef = useRef(tasks);
   useEffect(() => {
     tasksRef.current = tasks;
   }, [tasks]);
+
+  // Throttle rapid dragOver calls to prevent React 19 + dnd-kit measuring loop
+  const dragOverThrottleRef = useRef(0);
+
+  // Track original column from when drag started (not current task.column)
+  const originalColumnRef = useRef(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -42,18 +53,25 @@ export default function KanbanBoard() {
 
   // ── Drag Start ────────────────────────────────────────────
   function handleDragStart({ active }) {
-    setActiveTask(tasks.find((t) => t.id === active.id) || null);
+    const task = tasks.find((t) => t.id === active.id);
+    setActiveTask(task || null);
+    originalColumnRef.current = task?.column || null;
   }
 
   // ── Drag Over: live column switch while dragging ───────────
   function handleDragOver({ active, over }) {
     if (!over) return;
 
+    // Throttle: max one state update per 50ms to prevent measuring loop
+    const now = Date.now();
+    if (now - dragOverThrottleRef.current < 50) return;
+    dragOverThrottleRef.current = now;
+
     const current = tasksRef.current;
     const draggedTask = current.find((t) => t.id === active.id);
     if (!draggedTask) return;
 
-    const overColumn = COLUMNS.find((c) => c.id === over.id)
+    const overColumn = columns.find((c) => c.id === over.id)
       ? over.id
       : current.find((t) => t.id === over.id)?.column;
 
@@ -67,24 +85,23 @@ export default function KanbanBoard() {
   // ── Drag End: optimistic update + rollback ─────────────────
   async function handleDragEnd({ active, over }) {
     setActiveTask(null);
-    if (!over) return;
+    const originalColumn = originalColumnRef.current;
+    originalColumnRef.current = null;
 
-    const current = tasksRef.current;
-    const draggedTask = current.find((t) => t.id === active.id);
-    if (!draggedTask) return;
+    if (!over || !originalColumn) return;
 
-    const overColumn = COLUMNS.find((c) => c.id === over.id)
+    const overColumn = columns.find((c) => c.id === over.id)
       ? over.id
-      : current.find((t) => t.id === over.id)?.column;
+      : tasksRef.current.find((t) => t.id === over.id)?.column;
 
     if (!overColumn) return;
 
-    // Same column reorder
-    if (overColumn === draggedTask.column) {
+    // Same column — just reorder
+    if (overColumn === originalColumn) {
       if (active.id !== over.id) {
         setTasks((prev) => {
-          const colTasks = prev.filter((t) => t.column === draggedTask.column);
-          const others = prev.filter((t) => t.column !== draggedTask.column);
+          const colTasks = prev.filter((t) => t.column === originalColumn);
+          const others = prev.filter((t) => t.column !== originalColumn);
           const oldIdx = colTasks.findIndex((t) => t.id === active.id);
           const newIdx = colTasks.findIndex((t) => t.id === over.id);
           return [...others, ...arrayMove(colTasks, oldIdx, newIdx)];
@@ -93,12 +110,13 @@ export default function KanbanBoard() {
       return;
     }
 
-    // Cross-column drop
-    // Optimistic update already happened in dragOver
-    // Save snapshot & original for rollback
-    const snapshotTasks = [...current];
-    const originalColumn = draggedTask.column;
+    // Cross-column drop — ensure optimistic update is applied
+    // (handleDragOver may have already done this, setTasks is idempotent here)
+    setTasks((prev) =>
+      prev.map((t) => (t.id === active.id ? { ...t, column: overColumn } : t)),
+    );
 
+    // Call mock API — rollback on failure
     try {
       await updateTaskStatus(active.id, overColumn);
       toast.success("Task moved successfully!");
@@ -107,10 +125,10 @@ export default function KanbanBoard() {
         description: "The server encountered an error. Please try again.",
       });
 
-      // Rollback
+      // Rollback to the original column saved at drag start
       setRollingBackIds((prev) => new Set(prev).add(active.id));
-      setTasks(
-        snapshotTasks.map((t) =>
+      setTasks((prev) =>
+        prev.map((t) =>
           t.id === active.id ? { ...t, column: originalColumn } : t,
         ),
       );
@@ -143,6 +161,26 @@ export default function KanbanBoard() {
     toast.success("Task added!");
   }
 
+  // ── Add Column ──────────────────────────────────────────────
+  function handleAddColumn(name) {
+    const id = name.toLowerCase().replace(/\s+/g, "-");
+    if (columns.find((c) => c.id === id)) {
+      toast.error("A column with that name already exists.");
+      return;
+    }
+    setColumns((prev) => [...prev, { id, label: name, icon: "list" }]);
+    toast.success("Column added!");
+    onCloseAddColumn();
+  }
+
+  // ── Delete Column ───────────────────────────────────────────
+  function handleConfirmDelete() {
+    setTasks((prev) => prev.filter((t) => t.column !== deleteColumnId));
+    setColumns((prev) => prev.filter((c) => c.id !== deleteColumnId));
+    setDeleteColumnId(null);
+    toast.success("Column deleted!");
+  }
+
   return (
     <>
       {/* Add task bar */}
@@ -151,10 +189,10 @@ export default function KanbanBoard() {
           type="text"
           placeholder="What needs to be done?"
           readOnly
-          onClick={() => setModalColumn("todo")}
+          onClick={() => setModalColumn({ columnId: "todo", fixed: false })}
           className="add-input"
         />
-        <button className="add-btn" onClick={() => setModalColumn("todo")}>
+        <button className="add-btn" onClick={() => setModalColumn({ columnId: "todo", fixed: false })}>
           <assets.AddIcon />
           Add Task
         </button>
@@ -169,19 +207,21 @@ export default function KanbanBoard() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="board">
-          {COLUMNS.map((col) => (
+        <div className="board" style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}>
+          {columns.map((col) => (
             <Column
               key={col.id}
               column={col}
               tasks={getTasksByColumn(col.id)}
               rollingBackIds={rollingBackIds}
-              onAddTask={setModalColumn}
+              onAddTask={(colId) => setModalColumn({ columnId: colId, fixed: true })}
+              onDeleteColumn={setDeleteColumnId}
+              searchQuery={searchQuery}
             />
           ))}
         </div>
 
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeTask && (
             <div
               style={{ transform: "rotate(2deg) scale(1.05)", opacity: 0.95 }}
@@ -194,11 +234,46 @@ export default function KanbanBoard() {
 
       {modalColumn && (
         <AddTaskModal
-          defaultColumn={modalColumn}
+          columns={columns}
+          defaultColumn={modalColumn.columnId}
+          fixedColumn={modalColumn.fixed}
           onAdd={handleAddTask}
           onClose={() => setModalColumn(null)}
         />
       )}
+
+      {showAddColumn && (
+        <AddColumnModal
+          onAdd={handleAddColumn}
+          onClose={onCloseAddColumn}
+        />
+      )}
+
+      {showHistory && (
+        <HistoryModal
+          tasks={tasks}
+          columns={columns}
+          onClose={onCloseHistory}
+        />
+      )}
+
+      {deleteColumnId && (() => {
+        const col = columns.find((c) => c.id === deleteColumnId);
+        const taskCount = tasks.filter((t) => t.column === deleteColumnId).length;
+        return (
+          <ConfirmModal
+            title={`Delete "${col?.label}" column?`}
+            message={
+              taskCount > 0
+                ? `This column has ${taskCount} task${taskCount > 1 ? "s" : ""}. All tasks in this column will be permanently deleted.`
+                : "This column is empty and will be removed."
+            }
+            confirmLabel="Delete"
+            onConfirm={handleConfirmDelete}
+            onCancel={() => setDeleteColumnId(null)}
+          />
+        );
+      })()}
     </>
   );
 }
