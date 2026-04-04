@@ -8,8 +8,10 @@ export default function HistoryModal({ tasks, columns, onClose }) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
-  const getColumnLabel = (colId) =>
-    columns.find((c) => c.id === colId)?.label || colId;
+  const getColumnLabel = (task) =>
+    task.deleted
+      ? task.deletedColumnLabel || task.column
+      : columns.find((c) => c.id === task.column)?.label || task.column;
 
   return (
     <div
@@ -29,7 +31,7 @@ export default function HistoryModal({ tasks, columns, onClose }) {
             <p className="history-empty">No tasks created yet.</p>
           ) : (
             tasks.map((task) => (
-              <div key={task.id} className="history-item">
+              <div key={task.id} className={`history-item${task.deleted ? " history-deleted" : ""}`}>
                 <div className="history-item-left">
                   <span className="history-avatar">{task.avatar}</span>
                   <div className="history-item-info">
@@ -38,7 +40,7 @@ export default function HistoryModal({ tasks, columns, onClose }) {
                   </div>
                 </div>
                 <span className={`history-column history-col-${task.column}`}>
-                  {getColumnLabel(task.column)}
+                  {getColumnLabel(task)}
                 </span>
               </div>
             ))

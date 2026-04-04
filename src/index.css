@@ -158,6 +158,8 @@ select {
   font-size: 11px;
   font-weight: 700;
   color: #fff;
+  cursor: pointer;
+  user-select: none;
 }
 
 /* ── Main ─────────────────────────────────────────────────── */
@@ -246,9 +248,13 @@ select {
   transition: all 0.15s;
   outline: none;
 }
-.add-input:hover {
+.add-input:not(:disabled):hover {
   border-color: #ffffff26;
   background: #ffffff0d;
+}
+.add-input:disabled {
+  cursor: not-allowed;
+  box-shadow: none;
 }
 .add-btn {
   display: flex;
@@ -267,7 +273,12 @@ select {
 .add-btn:hover {
   background: #391dc9;
 }
-
+.add-btn:disabled {
+  background: #ffffff0d;
+  color: #ffffff33;
+  cursor: not-allowed;
+  box-shadow: none;
+}
 /* ── Board ────────────────────────────────────────────────── */
 .board {
   display: grid;
@@ -777,6 +788,15 @@ select {
 }
 .history-item:hover {
   background: #ffffff08;
+}
+.history-deleted {
+  opacity: 0.5;
+}
+.history-deleted .history-title {
+  text-decoration: line-through;
+}
+.history-deleted .history-column {
+  text-decoration: line-through;
 }
 .history-item-left {
   display: flex;

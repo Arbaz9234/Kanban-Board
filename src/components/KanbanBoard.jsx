@@ -25,7 +25,13 @@ const measuring = {
   },
 };
 
-export default function KanbanBoard({ searchQuery, showAddColumn, onCloseAddColumn, showHistory, onCloseHistory }) {
+export default function KanbanBoard({
+  searchQuery,
+  showAddColumn,
+  onCloseAddColumn,
+  showHistory,
+  onCloseHistory,
+}) {
   const [columns, setColumns] = useState(COLUMNS);
   const [tasks, setTasks] = useState(INITIAL_TASKS);
   const [activeTask, setActiveTask] = useState(null);
@@ -49,7 +55,8 @@ export default function KanbanBoard({ searchQuery, showAddColumn, onCloseAddColu
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
-  const getTasksByColumn = (colId) => tasks.filter((t) => t.column === colId);
+  const getTasksByColumn = (colId) =>
+    tasks.filter((t) => t.column === colId && !t.deleted);
 
   // ── Drag Start ────────────────────────────────────────────
   function handleDragStart({ active }) {
@@ -175,7 +182,15 @@ export default function KanbanBoard({ searchQuery, showAddColumn, onCloseAddColu
 
   // ── Delete Column ───────────────────────────────────────────
   function handleConfirmDelete() {
-    setTasks((prev) => prev.filter((t) => t.column !== deleteColumnId));
+    const colLabel =
+      columns.find((c) => c.id === deleteColumnId)?.label || deleteColumnId;
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.column === deleteColumnId
+          ? { ...t, deleted: true, deletedColumnLabel: colLabel }
+          : t,
+      ),
+    );
     setColumns((prev) => prev.filter((c) => c.id !== deleteColumnId));
     setDeleteColumnId(null);
     toast.success("Column deleted!");
@@ -187,12 +202,25 @@ export default function KanbanBoard({ searchQuery, showAddColumn, onCloseAddColu
       <div className="add-bar">
         <input
           type="text"
-          placeholder="What needs to be done?"
+          placeholder={
+            columns.length === 0
+              ? "Please add a column first!"
+              : "What needs to be done?"
+          }
           readOnly
-          onClick={() => setModalColumn({ columnId: "todo", fixed: false })}
+          onClick={() =>
+            setModalColumn({ columnId: columns[0]?.id, fixed: false })
+          }
           className="add-input"
+          disabled={columns.length === 0}
         />
-        <button className="add-btn" onClick={() => setModalColumn({ columnId: "todo", fixed: false })}>
+        <button
+          className="add-btn"
+          onClick={() =>
+            setModalColumn({ columnId: columns[0]?.id, fixed: false })
+          }
+          disabled={columns.length === 0}
+        >
           <assets.AddIcon />
           Add Task
         </button>
@@ -207,14 +235,19 @@ export default function KanbanBoard({ searchQuery, showAddColumn, onCloseAddColu
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="board" style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}>
+        <div
+          className="board"
+          style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}
+        >
           {columns.map((col) => (
             <Column
               key={col.id}
               column={col}
               tasks={getTasksByColumn(col.id)}
               rollingBackIds={rollingBackIds}
-              onAddTask={(colId) => setModalColumn({ columnId: colId, fixed: true })}
+              onAddTask={(colId) =>
+                setModalColumn({ columnId: colId, fixed: true })
+              }
               onDeleteColumn={setDeleteColumnId}
               searchQuery={searchQuery}
             />
@@ -223,9 +256,7 @@ export default function KanbanBoard({ searchQuery, showAddColumn, onCloseAddColu
 
         <DragOverlay dropAnimation={null}>
           {activeTask && (
-            <div
-              style={{ transform: "rotate(2deg) scale(1.05)", opacity: 0.95 }}
-            >
+            <div style={{ transform: "scale(1.05)", opacity: 0.95 }}>
               <TaskCard task={activeTask} isRollingBack={false} />
             </div>
           )}
@@ -243,10 +274,7 @@ export default function KanbanBoard({ searchQuery, showAddColumn, onCloseAddColu
       )}
 
       {showAddColumn && (
-        <AddColumnModal
-          onAdd={handleAddColumn}
-          onClose={onCloseAddColumn}
-        />
+        <AddColumnModal onAdd={handleAddColumn} onClose={onCloseAddColumn} />
       )}
 
       {showHistory && (
@@ -257,23 +285,26 @@ export default function KanbanBoard({ searchQuery, showAddColumn, onCloseAddColu
         />
       )}
 
-      {deleteColumnId && (() => {
-        const col = columns.find((c) => c.id === deleteColumnId);
-        const taskCount = tasks.filter((t) => t.column === deleteColumnId).length;
-        return (
-          <ConfirmModal
-            title={`Delete "${col?.label}" column?`}
-            message={
-              taskCount > 0
-                ? `This column has ${taskCount} task${taskCount > 1 ? "s" : ""}. All tasks in this column will be permanently deleted.`
-                : "This column is empty and will be removed."
-            }
-            confirmLabel="Delete"
-            onConfirm={handleConfirmDelete}
-            onCancel={() => setDeleteColumnId(null)}
-          />
-        );
-      })()}
+      {deleteColumnId &&
+        (() => {
+          const col = columns.find((c) => c.id === deleteColumnId);
+          const taskCount = tasks.filter(
+            (t) => t.column === deleteColumnId,
+          ).length;
+          return (
+            <ConfirmModal
+              title={`Delete "${col?.label}" column?`}
+              message={
+                taskCount > 0
+                  ? `This column has ${taskCount} task${taskCount > 1 ? "s" : ""}. All tasks in this column will be permanently deleted.`
+                  : "This column is empty and will be removed."
+              }
+              confirmLabel="Delete"
+              onConfirm={handleConfirmDelete}
+              onCancel={() => setDeleteColumnId(null)}
+            />
+          );
+        })()}
     </>
   );
 }

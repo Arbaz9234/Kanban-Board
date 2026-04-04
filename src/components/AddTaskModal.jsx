@@ -3,7 +3,10 @@ import { assets } from "../assets/assets";
 export default function AddTaskModal({ columns, defaultColumn, fixedColumn, onAdd, onClose }) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("Medium");
-  const [column, setColumn] = useState(defaultColumn || "todo");
+  const validDefault = columns.some((c) => c.id === defaultColumn)
+    ? defaultColumn
+    : columns[0]?.id;
+  const [column, setColumn] = useState(validDefault);
 
   useEffect(() => {
     const handleKey = (e) => e.key === "Escape" && onClose();
