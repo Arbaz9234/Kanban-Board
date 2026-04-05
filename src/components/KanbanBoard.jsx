@@ -197,7 +197,7 @@ export default function KanbanBoard({
   return (
     <>
       {/* Add task bar */}
-      <div className="add-bar">
+      <div className="add-bar flex gap-[10px] mb-6">
         <input
           type="text"
           placeholder={
@@ -209,7 +209,7 @@ export default function KanbanBoard({
           onClick={() =>
             setModalColumn({ columnId: columns[0]?.id, fixed: false })
           }
-          className="add-input"
+          className="add-input flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-[14px] text-white/40 text-sm cursor-pointer transition-all duration-150 outline-none"
           disabled={columns.length === 0}
         />
         <button
@@ -234,7 +234,7 @@ export default function KanbanBoard({
         onDragEnd={handleDragEnd}
       >
         <div
-          className="board   [&::-webkit-scrollbar]:h-[8px]
+          className="board grid gap-5 overflow-x-auto pb-8 [&::-webkit-scrollbar]:h-[8px]
   [&::-webkit-scrollbar-track]:bg-transparent
   [&::-webkit-scrollbar-thumb]:bg-[#444]
   [&::-webkit-scrollbar-thumb]:rounded-[8px]"

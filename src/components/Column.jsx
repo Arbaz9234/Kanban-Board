@@ -22,16 +22,22 @@ export default function Column({
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
   return (
-    <div className={`column column-${column.id}`}>
+    <div className={`column flex flex-col gap-3 column-${column.id}`}>
       {/* Header */}
-      <div className="column-header">
-        <div className="column-title">
-          <span className="column-dot" />
-          <span className="column-icon">{ICONS[column.icon]}</span>
-          <span className="column-name">{column.label}</span>
-          <span className="column-count">{tasks.length}</span>
+      <div className="column-header flex items-center justify-between px-1">
+        <div className="column-title flex items-center gap-2">
+          <span className="column-dot w-2 h-2 rounded-full shrink-0 bg-white/40" />
+          <span className="column-icon text-white/40">
+            {ICONS[column.icon]}
+          </span>
+          <span className="column-name text-[13px] font-semibold text-white/90">
+            {column.label}
+          </span>
+          <span className="column-count text-[11px] font-bold px-2 py-[2px] rounded-full bg-white/10 text-white/50 border border-white/10">
+            {tasks.length}
+          </span>
         </div>
-        <div className="column-actions">
+        <div className="column-actions flex items-center gap-[2px]">
           <button
             className="column-add-btn"
             onClick={() => onAddTask(column.id)}
