@@ -1,4 +1,4 @@
-import { useDroppable } from "@dnd-kit/core";
+import { useDroppable, useDndContext } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -20,6 +20,10 @@ export default function Column({
   searchQuery,
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
+  const { over } = useDndContext();
+
+  const isOverTaskInColumn = tasks.some((t) => t.id === over?.id);
+  const isDragOver = isOver || isOverTaskInColumn;
 
   return (
     <div className={`column flex flex-col gap-3 column-${column.id}`}>
@@ -48,12 +52,6 @@ export default function Column({
             className="column-delete-btn"
             onClick={() => onDeleteColumn(column.id)}
           >
-            {/* <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <polyline points="3 6 5 6 21 6" strokeWidth={2} strokeLinecap="round" />
-              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              <line x1="10" y1="11" x2="10" y2="17" strokeWidth={2} strokeLinecap="round" />
-              <line x1="14" y1="11" x2="14" y2="17" strokeWidth={2} strokeLinecap="round" />
-            </svg> */}
             <assets.DeleteIcon />
           </button>
         </div>
@@ -62,7 +60,7 @@ export default function Column({
       {/* Drop zone */}
       <div
         ref={setNodeRef}
-        className={`column-body ${isOver ? "drag-over" : ""}`}
+        className={`column-body ${isDragOver ? "drag-over" : ""}`}
       >
         <SortableContext
           items={tasks.map((t) => t.id)}
@@ -90,3 +88,4 @@ export default function Column({
     </div>
   );
 }
+

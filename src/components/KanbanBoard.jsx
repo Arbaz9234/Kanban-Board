@@ -51,7 +51,7 @@ export default function KanbanBoard({
   const originalColumnRef = useRef(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 10 } }),
   );
 
   const getTasksByColumn = (colId) =>
