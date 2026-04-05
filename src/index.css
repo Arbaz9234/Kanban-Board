@@ -1,4 +1,5 @@
-/* ── Reset & Base ─────────────────────────────────────────── */
+@import "tailwindcss";
+
 *,
 *::before,
 *::after {
@@ -284,6 +285,11 @@ select {
   display: grid;
   gap: 20px;
   overflow-x: auto;
+  padding-bottom: 2rem;
+}
+
+.board::-webkit-scrollbar-thumb:hover {
+  background: #606060;
 }
 @media (max-width: 900px) {
   .board {
@@ -313,6 +319,7 @@ select {
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  background: #ffffff66;
 }
 .column-todo .column-dot {
   background: #a78bfa;
@@ -337,6 +344,9 @@ select {
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 20px;
+  background: #ffffff0f;
+  color: #ffffff80;
+  border: 1px solid #ffffff14;
 }
 .column-todo .column-count {
   background: #a78bfa1a;
@@ -397,6 +407,7 @@ select {
   min-height: 180px;
   padding: 12px;
   border-radius: 16px;
+  min-width: 280px;
   border: 1px solid #ffffff0a;
   background: #ffffff05;
   transition: all 0.15s;
@@ -444,6 +455,7 @@ select {
   padding: 16px;
   cursor: grab;
   user-select: none;
+  min-width: 210px;
   transition:
     border-color 0.15s,
     box-shadow 0.15s;

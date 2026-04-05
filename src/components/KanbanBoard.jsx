@@ -39,16 +39,15 @@ export default function KanbanBoard({
   const [modalColumn, setModalColumn] = useState(null);
   const [deleteColumnId, setDeleteColumnId] = useState(null);
 
-  // Ref so handleDragEnd always reads latest tasks without being in deps
+  // Ref for handleDragEnd to read latest tasks
   const tasksRef = useRef(tasks);
   useEffect(() => {
     tasksRef.current = tasks;
   }, [tasks]);
 
-  // Throttle rapid dragOver calls to prevent React 19 + dnd-kit measuring loop
+  // Throttle rapid dragOver calls to prevent React 19 + dnd-kit measuring loop and unwanted re-renders.
   const dragOverThrottleRef = useRef(0);
 
-  // Track original column from when drag started (not current task.column)
   const originalColumnRef = useRef(null);
 
   const sensors = useSensors(
@@ -58,14 +57,14 @@ export default function KanbanBoard({
   const getTasksByColumn = (colId) =>
     tasks.filter((t) => t.column === colId && !t.deleted);
 
-  // ── Drag Start ────────────────────────────────────────────
+  // Drag Start
   function handleDragStart({ active }) {
     const task = tasks.find((t) => t.id === active.id);
     setActiveTask(task || null);
     originalColumnRef.current = task?.column || null;
   }
 
-  // ── Drag Over: live column switch while dragging ───────────
+  // Drag Over
   function handleDragOver({ active, over }) {
     if (!over) return;
 
@@ -89,7 +88,7 @@ export default function KanbanBoard({
     );
   }
 
-  // ── Drag End: optimistic update + rollback ─────────────────
+  // Drag End
   async function handleDragEnd({ active, over }) {
     setActiveTask(null);
     const originalColumn = originalColumnRef.current;
@@ -103,7 +102,7 @@ export default function KanbanBoard({
 
     if (!overColumn) return;
 
-    // Same column — just reorder
+    // Same column reordering
     if (overColumn === originalColumn) {
       if (active.id !== over.id) {
         setTasks((prev) => {
@@ -117,13 +116,12 @@ export default function KanbanBoard({
       return;
     }
 
-    // Cross-column drop — ensure optimistic update is applied
-    // (handleDragOver may have already done this, setTasks is idempotent here)
+    // Cross-column drop
     setTasks((prev) =>
       prev.map((t) => (t.id === active.id ? { ...t, column: overColumn } : t)),
     );
 
-    // Call mock API — rollback on failure
+    // Call mock API
     try {
       await updateTaskStatus(active.id, overColumn);
       toast.success("Task moved successfully!");
@@ -132,7 +130,7 @@ export default function KanbanBoard({
         description: "The server encountered an error. Please try again.",
       });
 
-      // Rollback to the original column saved at drag start
+      // Rollback to the original column
       setRollingBackIds((prev) => new Set(prev).add(active.id));
       setTasks((prev) =>
         prev.map((t) =>
@@ -150,7 +148,7 @@ export default function KanbanBoard({
     }
   }
 
-  // ── Add Task ───────────────────────────────────────────────
+  // Add Task
   function handleAddTask({ title, priority, column }) {
     const newTask = {
       id: `task-${Date.now()}`,
@@ -168,7 +166,7 @@ export default function KanbanBoard({
     toast.success("Task added!");
   }
 
-  // ── Add Column ──────────────────────────────────────────────
+  // Add Column
   function handleAddColumn(name) {
     const id = name.toLowerCase().replace(/\s+/g, "-");
     if (columns.find((c) => c.id === id)) {
@@ -180,7 +178,7 @@ export default function KanbanBoard({
     onCloseAddColumn();
   }
 
-  // ── Delete Column ───────────────────────────────────────────
+  // Delete Column
   function handleConfirmDelete() {
     const colLabel =
       columns.find((c) => c.id === deleteColumnId)?.label || deleteColumnId;
@@ -236,7 +234,10 @@ export default function KanbanBoard({
         onDragEnd={handleDragEnd}
       >
         <div
-          className="board"
+          className="board   [&::-webkit-scrollbar]:h-[8px]
+  [&::-webkit-scrollbar-track]:bg-transparent
+  [&::-webkit-scrollbar-thumb]:bg-[#444]
+  [&::-webkit-scrollbar-thumb]:rounded-[8px]"
           style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}
         >
           {columns.map((col) => (
