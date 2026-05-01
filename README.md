@@ -1,6 +1,6 @@
 # Kanban Board
 
-A modern, fully interactive Kanban board built with React 19 featuring drag-and-drop task management, optimistic UI updates with rollback, and a responsive design.
+A modern, interactive Kanban board built with React 19, featuring drag-and-drop tasks, optimistic updates with rollback, and a responsive design.
 
 ![Kanban Board](src/assets/hero.jpg)
 
